@@ -155,6 +155,8 @@ Errors use standard status codes with a plain-language `detail`: `422` invalid i
 
 ## Frontend
 
+![Compare routes](docs/screenshots/navigate.png)
+
 Pages: `/` home, `/navigate`, `/safety-map`, `/report`, `/journeys`, `/settings`, `/account`, `/admin`, and `/s/:token` for a contact. Comparing routes needs no account. Reports and journeys do.
 
 ![Moderation queue](docs/screenshots/admin.png)
