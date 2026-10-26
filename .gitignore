@@ -1,0 +1,19 @@
+# secrets and local config
+.env
+.env.*
+!.env.example
+
+# python
+__pycache__/
+*.pyc
+.venv/
+*.egg-info/
+.pytest_cache/
+
+# node
+node_modules/
+dist/
+
+# local databases and OS files
+*.db
+.DS_Store

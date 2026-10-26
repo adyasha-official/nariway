@@ -1,0 +1,32 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --lavender: #e9d5ff;
+  --plum: #6b21ab;
+  --coral: #ff7f6e;
+  --teal: #14b8a6;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply font-sans text-plum-ink antialiased;
+  background: linear-gradient(180deg, #f6eeff 0%, #fbf7ff 45%, #fff6f3 100%);
+  min-height: 100vh;
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-plum px-6 py-3 text-sm font-semibold text-white shadow-card transition hover:bg-plum-deep focus:outline-none focus-visible:ring-4 focus-visible:ring-lavender;
+  }
+  .btn-outline {
+    @apply inline-flex items-center justify-center gap-2 rounded-full border border-plum bg-white/60 px-6 py-3 text-sm font-semibold text-plum transition hover:bg-lavender-soft focus:outline-none focus-visible:ring-4 focus-visible:ring-lavender;
+  }
+  .tile {
+    @apply rounded-3xl p-5 text-center shadow-card;
+  }
+}
