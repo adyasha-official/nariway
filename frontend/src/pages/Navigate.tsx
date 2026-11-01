@@ -21,7 +21,16 @@ const CENTER: [number, number] = [22.2604, 84.8536];
 function PlaceInput({ label, value, onPick }: { label: string; value: Place | null; onPick: (p: Place) => void }) {
   const [text, setText] = useState(value?.name ?? "");
   const [opts, setOpts] = useState<Place[]>([]);
+  const [active, setActive] = useState(0);
   useEffect(() => { setText(value?.name ?? ""); }, [value]);
+  useEffect(() => { setActive(0); }, [opts]);
+  function onKey(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (!opts.length) return;
+    if (e.key === "ArrowDown") { e.preventDefault(); setActive((i) => (i + 1) % opts.length); }
+    else if (e.key === "ArrowUp") { e.preventDefault(); setActive((i) => (i - 1 + opts.length) % opts.length); }
+    else if (e.key === "Enter") { e.preventDefault(); onPick(opts[active]); setOpts([]); }
+    else if (e.key === "Escape") setOpts([]);
+  }
   useEffect(() => {
     if (text.length < 2 || text === value?.name) { setOpts([]); return; }
     const t = setTimeout(() => searchPlaces(text).then(setOpts).catch(() => setOpts([])), 300);
@@ -30,13 +39,15 @@ function PlaceInput({ label, value, onPick }: { label: string; value: Place | nu
   return (
     <div className="relative">
       <label className="mb-1 block text-xs font-semibold text-plum-ink/70">{label}</label>
-      <input value={text} onChange={(e) => setText(e.target.value)} placeholder="Search a place, or click the map"
+      <input value={text} onChange={(e) => setText(e.target.value)} onKeyDown={onKey}
+        role="combobox" aria-expanded={opts.length > 0} aria-autocomplete="list" placeholder="Search a place, or click the map"
         className="w-full rounded-xl border border-plum/20 bg-white px-3.5 py-2.5 text-sm outline-none focus:border-plum focus:ring-4 focus:ring-lavender" />
       {opts.length > 0 && (
         <ul className="absolute z-[1000] mt-1 max-h-56 w-full overflow-auto rounded-xl border border-plum/15 bg-white shadow-card">
-          {opts.map((o) => (
+          {opts.map((o, i) => (
             <li key={o.name + o.lat}>
-              <button type="button" className="w-full px-3.5 py-2 text-left text-sm hover:bg-lavender-soft"
+              <button type="button" aria-selected={i === active} onMouseEnter={() => setActive(i)}
+                className={`w-full px-3.5 py-2 text-left text-sm hover:bg-lavender-soft ${i === active ? "bg-lavender-soft" : ""}`}
                 onClick={() => { onPick(o); setOpts([]); }}>{o.name}</button>
             </li>
           ))}
@@ -113,12 +124,24 @@ export default function Navigate() {
     } catch (e) { setStartErr((e as Error).message); }
   }
 
-  async function find() {
+  const latest = useRef(0);
+  async function find(m: TravelMode = mode) {
     if (!origin || !dest) return;
+    const id = ++latest.current;
     setBusy(true); setError(""); setData(null);
-    try { setData(await getAlternatives(origin, dest, mode)); }
-    catch (e) { setError((e as Error).message); }
-    finally { setBusy(false); }
+    try {
+      const d = await getAlternatives(origin, dest, m);
+      if (id === latest.current) setData(d);
+    } catch (e) {
+      if (id === latest.current) setError((e as Error).message);
+    } finally {
+      if (id === latest.current) setBusy(false);
+    }
+  }
+  function chooseMode(m: TravelMode) {
+    if (m === mode) return;
+    setMode(m);
+    if (origin && dest) find(m); // routes differ by travel mode, so refresh straight away
   }
 
   return (
@@ -129,11 +152,11 @@ export default function Navigate() {
           <PlaceInput label="To" value={dest} onPick={setDest} />
           <div className="flex gap-2" role="radiogroup" aria-label="Travel mode">
             {TRAVEL.map((t) => (
-              <button key={t.key} role="radio" aria-checked={mode === t.key} onClick={() => setMode(t.key)}
+              <button key={t.key} role="radio" aria-checked={mode === t.key} onClick={() => chooseMode(t.key)}
                 className={`rounded-full px-4 py-1.5 text-sm font-medium ${mode === t.key ? "bg-plum text-white" : "bg-lavender-soft text-plum"}`}>{t.label}</button>
             ))}
           </div>
-          <button className="btn-primary" disabled={!origin || !dest || busy} onClick={find}>
+          <button className="btn-primary" disabled={!origin || !dest || busy} onClick={() => find()}>
             {busy ? "Finding routes…" : "Compare routes"}
           </button>
           {error && <p role="alert" className="rounded-xl bg-coral-soft p-3 text-sm text-[#a63a2a]">{error}</p>}
