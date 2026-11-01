@@ -12,7 +12,7 @@ export type Assessment = {
   excluded_for_detour: boolean; reasons: string[]; hazards: string[]; indicators: Indicator[];
 };
 export type AlternativesResponse = {
-  is_demo: boolean; routing_source: string; pilot_city: string; routes: Candidate[];
+  is_demo: boolean; routing_source: string; pilot_city: string; data_notes?: string[]; routes: Candidate[];
   result: { model_version: string; disclaimer: string; is_demo: boolean;
             recommended: Record<Preference, string>; assessments: Assessment[] };
 };

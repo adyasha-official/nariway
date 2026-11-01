@@ -145,6 +145,9 @@ export default function Navigate() {
                   <b>Sample data.</b> These routes and safety indicators are demonstration data, not real conditions.
                 </p>
               )}
+              {!data.is_demo && data.data_notes?.map((n) => (
+                <p key={n} className="rounded-xl bg-lavender-soft p-3 text-xs text-plum-deep">{n}</p>
+              ))}
               <div className="grid gap-2">
                 {MODES.map((m) => {
                   const a = byId(data.result.recommended[m.key])!;
@@ -159,6 +162,12 @@ export default function Navigate() {
                   );
                 })}
               </div>
+              {new Set(Object.values(data.result.recommended)).size === 1 && (
+                <p className="text-xs text-plum-ink/70">
+                  One route comes out best for all three priorities on this trip, so the cards match. Other routes
+                  were considered but ranked lower.
+                </p>
+              )}
               <section className="rounded-2xl bg-lavender-soft p-4 text-sm">
                 <h2 className="font-semibold text-plum-deep">Why this route</h2>
                 <ul className="mt-2 list-disc space-y-1 pl-5 text-plum-ink/85">{selected.reasons.map((r) => <li key={r}>{r}</li>)}</ul>

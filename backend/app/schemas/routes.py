@@ -83,6 +83,7 @@ class AlternativesResponse(BaseModel):
     pilot_city: str
     depart_at: datetime
     routes: list[CandidateRoute]
+    data_notes: list[str] = []
     result: AssessResponse
 
 

@@ -3,6 +3,7 @@ from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
 
 from app.core.config import settings
+from app.services.osm.store import get_store
 
 router = APIRouter(prefix="/api/v1/places", tags=["places"])
 
@@ -13,7 +14,7 @@ class Place(BaseModel):
     lng: float
 
 
-# Small labelled gazetteer so the UI works offline in the pilot city (Rourkela).
+# Small gazetteer of pilot-city landmarks (approximate coordinates), used offline and to fill gaps in map data.
 DEMO_PLACES = [
     Place(name="NIT Rourkela", lat=22.2536, lng=84.9006),
     Place(name="Rourkela Railway Station", lat=22.2290, lng=84.8640),
@@ -27,7 +28,15 @@ DEMO_PLACES = [
 @router.get("/search", response_model=list[Place])
 async def search(q: str = Query(min_length=2, max_length=100)) -> list[Place]:
     if not settings.geocoder_url:
-        return [p for p in DEMO_PLACES if q.lower() in p.name.lower()][:6]
+        # Search the downloaded map data first. This avoids hitting public geocoders, whose policy forbids
+        # search-as-you-type. Without map data, fall back to the small demo list.
+        store = get_store(settings.osm_data_path)
+        hits = [Place(**h) for h in store.search(q)] if store else []
+        # Landmarks such as campuses and stations are often not tagged as places in the map data, so add the
+        # small list of known pilot-city landmarks after the map hits.
+        seen = {h.name.lower() for h in hits}
+        hits += [p for p in DEMO_PLACES if q.lower() in p.name.lower() and p.name.lower() not in seen]
+        return hits[:6]
     try:
         async with httpx.AsyncClient(timeout=8, headers={"User-Agent": settings.geocoder_user_agent}) as c:
             r = await c.get(f"{settings.geocoder_url.rstrip('/')}/search",

@@ -17,6 +17,15 @@ class Settings(BaseSettings):
     # Self-hosted OSRM / Valhalla / GraphHopper-compatible OSRM endpoint, e.g. http://localhost:5000
     # Leave empty to use the clearly-labelled demo routing provider.
     routing_provider_url: str = ""
+    # OSRM runs one profile per server, so walking/cycling/driving usually have separate URLs.
+    # Each falls back to routing_provider_url when empty.
+    routing_url_walk: str = ""
+    routing_url_bike: str = ""
+    routing_url_cab: str = ""
+    # OSRM ignores the profile segment in the path; "driving" works on every server.
+    routing_path_profile: str = "driving"
+    # Local OpenStreetMap extract (created by `python -m app.osm_fetch`)
+    osm_data_path: str = "data/osm_rourkela.json"
     # Nominatim-compatible geocoder. The public OSM instance is NOT for production use.
     geocoder_url: str = ""
     geocoder_user_agent: str = "NariWay/0.1 (contact: set-GEOCODER_USER_AGENT)"

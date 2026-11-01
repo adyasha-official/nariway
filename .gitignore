@@ -17,3 +17,6 @@ dist/
 # local databases and OS files
 *.db
 .DS_Store
+
+# generated map data (create with `make osm`)
+backend/data/osm_*.json
